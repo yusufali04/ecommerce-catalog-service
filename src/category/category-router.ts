@@ -7,6 +7,7 @@ import { globalWrapper } from "../common/utils/globalWrapper";
 import authenticate from "../common/middlewares/authenticate";
 import { canAccess } from "../common/middlewares/canAccess";
 import { Roles } from "../common/constants";
+import categoryUpdateValidator from "./category-update-validator";
 
 const categoryRouter = express.Router();
 const categoryService = new CategoryService();
@@ -18,6 +19,22 @@ categoryRouter.post(
     canAccess([Roles.ADMIN]),
     categoryValidator,
     globalWrapper(categoryController.create),
+);
+
+categoryRouter.get("/", globalWrapper(categoryController.index));
+categoryRouter.get("/:categoryId", globalWrapper(categoryController.getOne));
+categoryRouter.patch(
+    "/:categoryId",
+    authenticate,
+    canAccess([Roles.ADMIN]),
+    categoryUpdateValidator,
+    globalWrapper(categoryController.update),
+);
+categoryRouter.delete(
+    "/:categoryId",
+    authenticate,
+    canAccess([Roles.ADMIN]),
+    globalWrapper(categoryController.delete),
 );
 
 export default categoryRouter;
