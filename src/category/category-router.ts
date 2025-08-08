@@ -4,6 +4,7 @@ import categoryValidator from "./category-validator";
 import { CategoryService } from "./category-service";
 import logger from "../config/logger";
 import { globalWrapper } from "../common/utils/globalWrapper";
+import authenticate from "../common/middlewares/authenticate";
 
 const categoryRouter = express.Router();
 const categoryService = new CategoryService();
@@ -11,6 +12,7 @@ const categoryController = new CategoryController(categoryService, logger);
 
 categoryRouter.post(
     "/",
+    authenticate,
     categoryValidator,
     globalWrapper(categoryController.create),
 );
