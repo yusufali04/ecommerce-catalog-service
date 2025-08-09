@@ -73,14 +73,14 @@ export class ProductController {
         let oldImageName: string | undefined;
 
         if (req.files?.image) {
-            oldImageName = await this.productService.getProductImage(productId);
+            oldImageName = product.image;
             const newImage = req.files.image as UploadedFile;
             newImageName = uuidv4();
             await this.storage.upload({
                 fileName: newImageName,
                 fileData: newImage.data.buffer,
             });
-            await this.storage.delete(oldImageName!);
+            await this.storage.delete(oldImageName);
         }
         const {
             name,
