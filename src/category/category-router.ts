@@ -23,7 +23,7 @@ categoryRouter.post(
 
 categoryRouter.get("/", globalWrapper(categoryController.index));
 categoryRouter.get("/:categoryId", globalWrapper(categoryController.getOne));
-categoryRouter.patch(
+categoryRouter.put(
     "/:categoryId",
     authenticate,
     canAccess([Roles.ADMIN]),
