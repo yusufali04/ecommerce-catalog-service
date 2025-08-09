@@ -20,4 +20,7 @@ export class ProductService {
             },
         );
     }
+    async getProduct(productId: string) {
+        return await ProductModel.findOne({ _id: productId });
+    }
 }

@@ -7,6 +7,8 @@ import { Product } from "./product-types";
 import { FileStorage } from "../common/types/storage";
 import { v4 as uuidv4 } from "uuid";
 import { UploadedFile } from "express-fileupload";
+import { AuthRequest } from "../common/types";
+import { Roles } from "../common/constants";
 
 export class ProductController {
     constructor(
@@ -54,6 +56,19 @@ export class ProductController {
             return next(createHttpError(400, result.array()[0].msg as string));
         }
         const { productId } = req.params;
+        // check if tenant has access to the product
+        const product = await this.productService.getProduct(productId);
+        if (!product) {
+            return next(createHttpError(404, "Product not found"));
+        }
+        const tenant = (req as AuthRequest).auth.tenant;
+        if (
+            (req as AuthRequest).auth.role !== Roles.ADMIN &&
+            product.tenantId !== String(tenant)
+        ) {
+            return next(createHttpError(403, "UnAuthorized access"));
+        }
+
         let newImageName: string | undefined;
         let oldImageName: string | undefined;
 
@@ -76,7 +91,7 @@ export class ProductController {
             categoryId,
             isPublished,
         } = req.body as Product;
-        const product = {
+        const productData = {
             name,
             description,
             priceConfiguration: JSON.parse(priceConfiguration) as string,
@@ -86,7 +101,7 @@ export class ProductController {
             image: newImageName ? newImageName : (oldImageName as string),
             isPublished,
         };
-        await this.productService.update(productId, product);
+        await this.productService.update(productId, productData);
         res.json({ id: productId });
     };
 }
