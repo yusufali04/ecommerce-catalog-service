@@ -47,4 +47,5 @@ productRouter.put(
     updateProductValidator,
     globalWrapper(productController.update),
 );
+productRouter.get("/", globalWrapper(productController.getAll));
 export default productRouter;
