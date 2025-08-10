@@ -126,8 +126,8 @@ export class ProductController {
             q as string,
             filters,
             {
-                page: req.query.page ? Number(req.query.page) : 1,
-                limit: req.query.limit ? Number(req.query.limit) : 10,
+                page: req.query.currentPage ? Number(req.query.currentPage) : 1,
+                limit: req.query.perPage ? Number(req.query.perPage) : 10,
             },
         );
 
@@ -146,5 +146,25 @@ export class ProductController {
             perPage: products.perPage,
             currentPage: products.currentPage,
         });
+    };
+    getOne = async (req: Request, res: Response, next: NextFunction) => {
+        const { productId } = req.params;
+
+        const product = await this.productService.getProduct(productId);
+        if (!product) {
+            return next(createHttpError(404, "Product not found"));
+        }
+        this.logger.info(`Getting product`, { id: product._id });
+        res.json(product);
+    };
+    delete = async (req: Request, res: Response, next: NextFunction) => {
+        const { productId } = req.params;
+
+        const deletedProduct = await this.productService.delete(productId);
+        if (!deletedProduct) {
+            return next(createHttpError(404, "Product not found"));
+        }
+        this.logger.info(`Deleted product`, { id: deletedProduct._id });
+        res.json({ id: deletedProduct._id });
     };
 }
