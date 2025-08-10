@@ -10,11 +10,13 @@ import { UploadedFile } from "express-fileupload";
 import { AuthRequest } from "../common/types";
 import { Roles } from "../common/constants";
 import mongoose from "mongoose";
+import { Logger } from "winston";
 
 export class ProductController {
     constructor(
         private productService: ProductService,
         private storage: FileStorage,
+        private logger: Logger,
     ) {}
     create = async (req: Request, res: Response, next: NextFunction) => {
         const result = validationResult(req);
@@ -120,8 +122,15 @@ export class ProductController {
                 categoryId as string,
             );
         }
-        const products = await this.productService.getAll(q as string, filters);
-        // add logging
+        const products = await this.productService.getAll(
+            q as string,
+            filters,
+            {
+                page: req.query.page ? Number(req.query.page) : 1,
+                limit: req.query.limit ? Number(req.query.limit) : 10,
+            },
+        );
+        this.logger.info("All products fetched");
         res.json(products);
     };
 }
