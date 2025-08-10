@@ -130,7 +130,21 @@ export class ProductController {
                 limit: req.query.limit ? Number(req.query.limit) : 10,
             },
         );
+
+        const finalProducts = (products.data as Product[]).map(
+            (product: Product) => {
+                return {
+                    ...product,
+                    image: this.storage.getObjectURI(product.image),
+                };
+            },
+        );
         this.logger.info("All products fetched");
-        res.json(products);
+        res.json({
+            data: finalProducts,
+            total: products.total,
+            perPage: products.perPage,
+            currentPage: products.currentPage,
+        });
     };
 }

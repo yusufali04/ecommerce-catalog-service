@@ -27,7 +27,6 @@ export class S3Storage implements FileStorage {
         // @ts-ignore
         return await this.client.send(new PutObjectCommand(objectParams));
     }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async delete(fileName: string): Promise<void> {
         const objectParams = {
             Bucket: config.get("s3.bucket"),
@@ -37,8 +36,9 @@ export class S3Storage implements FileStorage {
         // @ts-ignore
         return await this.client.send(new DeleteObjectCommand(objectParams));
     }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     getObjectURI(filename: string): string {
-        throw new Error("Method not implemented.");
+        return `https://${config.get<string>(
+            "s3.bucket",
+        )}.s3.${config.get<string>("s3.region")}.amazonaws.com/${filename}`;
     }
 }
