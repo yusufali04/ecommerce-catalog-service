@@ -6,6 +6,7 @@ const toppingSchema = new mongoose.Schema({
     price: Number,
     tenantId: String,
     isPublished: Boolean,
+    categoryId: mongoose.Types.ObjectId,
 });
 toppingSchema.plugin(aggregatePaginate);
 const ToppingModel = mongoose.model("topping", toppingSchema);

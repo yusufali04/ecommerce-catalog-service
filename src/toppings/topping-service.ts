@@ -10,6 +10,14 @@ export class ToppingService {
     async getTopping(toppingId: string) {
         return (await ToppingModel.findById(toppingId)) as Topping;
     }
+    async getByCategoryAndTenant(
+        categoryId: string,
+        tenantId: string,
+    ): Promise<Topping[]> {
+        return await ToppingModel.find({ categoryId, tenantId }).lean<
+            Topping[]
+        >();
+    }
     async update(toppingId: string, toppingData: Topping) {
         return (await ToppingModel.findOneAndUpdate(
             { _id: toppingId },

@@ -55,5 +55,8 @@ toppingRouter.delete(
     canAccess([Roles.ADMIN, Roles.MANAGER]),
     globalWrapper(toppingController.delete),
 );
-
+toppingRouter.get(
+    "/category/tenant",
+    globalWrapper(toppingController.getByCategoryAndTenant),
+);
 export default toppingRouter;

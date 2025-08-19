@@ -7,4 +7,5 @@ export interface Topping {
     price: number;
     tenantId: string;
     isPublished: boolean;
+    categoryId: mongoose.Types.ObjectId;
 }

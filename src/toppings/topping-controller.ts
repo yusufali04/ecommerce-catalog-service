@@ -29,6 +29,7 @@ export class ToppingController {
             tenantId,
             isPublished,
             image = imageName,
+            categoryId,
         } = req.body as Topping;
         const createdTopping = await this.toppingService.create({
             name,
@@ -36,6 +37,7 @@ export class ToppingController {
             tenantId,
             isPublished,
             image,
+            categoryId,
         });
         res.json({ id: createdTopping._id }).send();
     };
@@ -72,6 +74,7 @@ export class ToppingController {
             tenantId,
             isPublished,
             image = newImageName ? newImageName : oldImageName,
+            categoryId,
         } = req.body as Topping;
         const updatedTopping = await this.toppingService.update(toppingId, {
             name,
@@ -79,6 +82,7 @@ export class ToppingController {
             tenantId,
             isPublished,
             image,
+            categoryId,
         } as Topping);
         res.json({ id: updatedTopping._id });
     };
@@ -88,8 +92,32 @@ export class ToppingController {
         if (!topping) {
             return next(createHttpError(404, "Product not found"));
         }
-        this.logger.info(`Getting product`, { id: topping._id });
+        this.logger.info(`Getting topping`, { id: topping._id });
         res.json(topping);
+    };
+    getByCategoryAndTenant = async (
+        req: Request,
+        res: Response,
+        next: NextFunction,
+    ) => {
+        const { categoryId, tenantId } = req.query;
+        const toppings = await this.toppingService.getByCategoryAndTenant(
+            categoryId as string,
+            tenantId as string,
+        );
+        if (!toppings) {
+            return next(createHttpError(404, "Toppings not found"));
+        }
+        const finalToppings = toppings.map((topping: Topping) => {
+            return {
+                ...topping,
+                image: this.storage.getObjectURI(topping.image),
+            };
+        });
+        this.logger.info(`Getting toppings by categoryId`, {
+            categoryId: categoryId,
+        });
+        res.json(finalToppings);
     };
     getAll = async (req: Request, res: Response) => {
         const toppings = await this.toppingService.getAll({
