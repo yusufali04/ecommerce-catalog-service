@@ -1,5 +1,6 @@
 import { UploadedFile } from "express-fileupload";
 import { v4 as uuidv4 } from "uuid";
+import config from "config";
 import { FileStorage } from "../common/types/storage";
 import { NextFunction, Request, Response } from "express";
 import { ToppingService } from "./topping-service";
@@ -8,12 +9,14 @@ import { Logger } from "winston";
 import { Topping } from "./topping-types";
 import { AuthRequest } from "../common/types";
 import { Roles } from "../common/constants";
+import { MessageProducerBroker } from "../common/types/broker";
 
 export class ToppingController {
     constructor(
         private storage: FileStorage,
         private toppingService: ToppingService,
         private logger: Logger,
+        private broker: MessageProducerBroker,
     ) {}
     create = async (req: Request, res: Response) => {
         // upload image to s3
@@ -31,7 +34,7 @@ export class ToppingController {
             image = imageName,
             categoryId,
         } = req.body as Topping;
-        const createdTopping = await this.toppingService.create({
+        const createdTopping: Topping = await this.toppingService.create({
             name,
             price,
             tenantId,
@@ -39,6 +42,13 @@ export class ToppingController {
             image,
             categoryId,
         });
+        await this.broker.sendMessage(
+            config.get("kafka.toppingTopic"),
+            JSON.stringify({
+                id: createdTopping._id,
+                price: createdTopping.price,
+            }),
+        );
         res.json({ id: createdTopping._id }).send();
     };
     update = async (req: Request, res: Response, next: NextFunction) => {
@@ -84,6 +94,13 @@ export class ToppingController {
             image,
             categoryId,
         } as Topping);
+        await this.broker.sendMessage(
+            config.get("kafka.toppingTopic"),
+            JSON.stringify({
+                id: updatedTopping._id,
+                price: updatedTopping.price,
+            }),
+        );
         res.json({ id: updatedTopping._id });
     };
     getOne = async (req: Request, res: Response, next: NextFunction) => {
