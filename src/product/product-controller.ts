@@ -13,6 +13,7 @@ import { Roles } from "../common/constants";
 import mongoose from "mongoose";
 import { Logger } from "winston";
 import { MessageProducerBroker } from "../common/types/broker";
+import { mapToObject } from "../utils";
 
 export class ProductController {
     constructor(
@@ -58,7 +59,12 @@ export class ProductController {
             config.get("kafka.productTopic"),
             JSON.stringify({
                 id: createdProduct._id,
-                priceConfiguration: createdProduct.priceConfiguration,
+                priceConfiguration: mapToObject(
+                    createdProduct.priceConfiguration as unknown as Map<
+                        string,
+                        unknown
+                    >,
+                ),
             }),
         );
         res.json({ id: createdProduct._id }).send();
@@ -123,7 +129,12 @@ export class ProductController {
             config.get("kafka.productTopic"),
             JSON.stringify({
                 id: updatedProduct._id,
-                priceConfiguration: updatedProduct.priceConfiguration,
+                priceConfiguration: mapToObject(
+                    updatedProduct.priceConfiguration as unknown as Map<
+                        string,
+                        unknown
+                    >,
+                ),
             }),
         );
         res.json({ id: productId });
