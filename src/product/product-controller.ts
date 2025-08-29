@@ -1,5 +1,6 @@
 import { NextFunction, Response } from "express";
 import { Request } from "express-jwt";
+import config from "config";
 import { validationResult } from "express-validator";
 import createHttpError from "http-errors";
 import { ProductService } from "./product-service";
@@ -11,12 +12,14 @@ import { AuthRequest } from "../common/types";
 import { Roles } from "../common/constants";
 import mongoose from "mongoose";
 import { Logger } from "winston";
+import { MessageProducerBroker } from "../common/types/broker";
 
 export class ProductController {
     constructor(
         private productService: ProductService,
         private storage: FileStorage,
         private logger: Logger,
+        private broker: MessageProducerBroker,
     ) {}
     create = async (req: Request, res: Response, next: NextFunction) => {
         const result = validationResult(req);
@@ -50,6 +53,14 @@ export class ProductController {
             image,
             isPublished,
         });
+        // Send product to kafka
+        await this.broker.sendMessage(
+            config.get("kafka.productTopic"),
+            JSON.stringify({
+                id: createdProduct._id,
+                priceConfiguration: createdProduct.priceConfiguration,
+            }),
+        );
         res.json({ id: createdProduct._id }).send();
     };
     update = async (req: Request, res: Response, next: NextFunction) => {
@@ -103,7 +114,18 @@ export class ProductController {
             image: newImageName ? newImageName : (oldImageName as string),
             isPublished,
         };
-        await this.productService.update(productId, productData);
+        const updatedProduct = await this.productService.update(
+            productId,
+            productData,
+        );
+        // send updated product to kafka
+        await this.broker.sendMessage(
+            config.get("kafka.productTopic"),
+            JSON.stringify({
+                id: updatedProduct._id,
+                priceConfiguration: updatedProduct.priceConfiguration,
+            }),
+        );
         res.json({ id: productId });
     };
     getAll = async (req: Request, res: Response) => {
