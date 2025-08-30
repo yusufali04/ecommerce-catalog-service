@@ -47,6 +47,7 @@ export class ToppingController {
             JSON.stringify({
                 id: createdTopping._id,
                 price: createdTopping.price,
+                tenantId: createdTopping.tenantId,
             }),
         );
         res.json({ id: createdTopping._id }).send();
@@ -99,6 +100,7 @@ export class ToppingController {
             JSON.stringify({
                 id: updatedTopping._id,
                 price: updatedTopping.price,
+                tenantId: updatedTopping.tenantId,
             }),
         );
         res.json({ id: updatedTopping._id });
