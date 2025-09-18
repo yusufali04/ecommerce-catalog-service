@@ -4,7 +4,7 @@ import config from "config";
 import { validationResult } from "express-validator";
 import createHttpError from "http-errors";
 import { ProductService } from "./product-service";
-import { Filter, Product } from "./product-types";
+import { Filter, Product, ProductEvents } from "./product-types";
 import { FileStorage } from "../common/types/storage";
 import { v4 as uuidv4 } from "uuid";
 import { UploadedFile } from "express-fileupload";
@@ -55,9 +55,9 @@ export class ProductController {
             isPublished,
         });
         // Send product to kafka
-        await this.broker.sendMessage(
-            config.get("kafka.productTopic"),
-            JSON.stringify({
+        const brokerMessage = {
+            event_type: ProductEvents.PRODUCT_CREATE,
+            data: {
                 id: createdProduct._id,
                 priceConfiguration: mapToObject(
                     createdProduct.priceConfiguration as unknown as Map<
@@ -65,7 +65,11 @@ export class ProductController {
                         unknown
                     >,
                 ),
-            }),
+            },
+        };
+        await this.broker.sendMessage(
+            config.get("kafka.productTopic"),
+            JSON.stringify(brokerMessage),
         );
         res.json({ id: createdProduct._id }).send();
     };
@@ -125,17 +129,21 @@ export class ProductController {
             productData,
         );
         // send updated product to kafka
-        await this.broker.sendMessage(
-            config.get("kafka.productTopic"),
-            JSON.stringify({
-                id: updatedProduct._id,
+        const brokerMessage = {
+            event_type: ProductEvents.PRODUCT_UPDATE,
+            data: {
+                id: updatedProduct._id?.toString(),
                 priceConfiguration: mapToObject(
                     updatedProduct.priceConfiguration as unknown as Map<
                         string,
                         unknown
                     >,
                 ),
-            }),
+            },
+        };
+        await this.broker.sendMessage(
+            config.get("kafka.productTopic"),
+            JSON.stringify(brokerMessage),
         );
         res.json({ id: productId });
     };

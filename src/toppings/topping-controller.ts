@@ -6,7 +6,7 @@ import { NextFunction, Request, Response } from "express";
 import { ToppingService } from "./topping-service";
 import createHttpError from "http-errors";
 import { Logger } from "winston";
-import { Topping } from "./topping-types";
+import { Topping, ToppingEvents } from "./topping-types";
 import { AuthRequest } from "../common/types";
 import { Roles } from "../common/constants";
 import { MessageProducerBroker } from "../common/types/broker";
@@ -42,13 +42,18 @@ export class ToppingController {
             image,
             categoryId,
         });
-        await this.broker.sendMessage(
-            config.get("kafka.toppingTopic"),
-            JSON.stringify({
+        // Send message to kafka
+        const brokerMessage = {
+            event_type: ToppingEvents.TOPPING_CREATE,
+            data: {
                 id: createdTopping._id,
                 price: createdTopping.price,
                 tenantId: createdTopping.tenantId,
-            }),
+            },
+        };
+        await this.broker.sendMessage(
+            config.get("kafka.toppingTopic"),
+            JSON.stringify(brokerMessage),
         );
         res.json({ id: createdTopping._id }).send();
     };
@@ -95,13 +100,18 @@ export class ToppingController {
             image,
             categoryId,
         } as Topping);
-        await this.broker.sendMessage(
-            config.get("kafka.toppingTopic"),
-            JSON.stringify({
+        // Send to kafka
+        const brokerMessage = {
+            event_type: ToppingEvents.TOPPING_UPDATE,
+            data: {
                 id: updatedTopping._id,
                 price: updatedTopping.price,
                 tenantId: updatedTopping.tenantId,
-            }),
+            },
+        };
+        await this.broker.sendMessage(
+            config.get("kafka.toppingTopic"),
+            JSON.stringify(brokerMessage),
         );
         res.json({ id: updatedTopping._id });
     };

@@ -9,3 +9,8 @@ export interface Topping {
     isPublished: boolean;
     categoryId: mongoose.Types.ObjectId;
 }
+
+export enum ToppingEvents {
+    TOPPING_CREATE = "TOPPING_CREATE",
+    TOPPING_UPDATE = "TOPPING_UPDATE",
+}
